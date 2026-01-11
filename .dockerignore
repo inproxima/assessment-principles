@@ -1,0 +1,29 @@
+## Secrets / local env
+.env
+.env.*
+
+## Node / Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/.vercel/
+
+## Logs
+**/*.log
+
+## Python
+**/__pycache__/
+**/*.py[cod]
+**/.Python
+**/venv/
+**/.venv/
+
+## Local databases / artifacts
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+
+## OS / editor
+.DS_Store
+.idea/
+.vscode/
