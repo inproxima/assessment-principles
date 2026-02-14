@@ -226,10 +226,17 @@ def evaluate_run(run_id: str) -> None:
             session.add(run)
             session.commit()
 
+        # Determine which principles to evaluate
+        if run.selected_principles:
+            selected_ids = set(run.selected_principles.split(","))
+        else:
+            selected_ids = {p.id for p in PRINCIPLES}
+        principles_to_eval = [p for p in PRINCIPLES if p.id in selected_ids]
+
         max_workers = max(1, int(settings.eval_max_concurrency))
         futures = {}
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            for p in PRINCIPLES:
+            for p in principles_to_eval:
                 futures[pool.submit(_evaluate_one_principle, course_context=course_context, description=desc, p=p)] = p
 
             for fut in as_completed(futures):

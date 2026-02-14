@@ -7,13 +7,23 @@ from sqlmodel import select
 from app.config import get_settings
 from app.db.models import PrincipleResult, Report, Run
 from app.db.session import get_session
+from app.principles.ucalgary_principles import PRINCIPLES
 from app.services.extract_text import TextExtractionError, extract_text_from_upload
 from app.services.evaluator import evaluate_run
 from app.services.report_generator import generate_report_for_run
 from app.services.report_pdf import markdown_to_pdf
 
+VALID_PRINCIPLE_IDS = {p.id for p in PRINCIPLES}
 
 router = APIRouter(prefix="/api", tags=["runs"])
+
+
+@router.get("/principles")
+def list_principles() -> list[dict]:
+    return [
+        {"id": p.id, "title": p.title, "description": p.description}
+        for p in PRINCIPLES
+    ]
 
 
 @router.post("/runs")
@@ -26,6 +36,7 @@ async def create_run(
     learning_outcome: str = Form(...),
     text: str | None = Form(None),
     file: UploadFile | None = File(None),
+    selected_principles: str | None = Form(None),  # comma-separated: "a,b,c"
 ) -> dict[str, str]:
     mode = (mode or "").strip().lower()
     if mode not in ("task", "description"):
@@ -79,6 +90,17 @@ async def create_run(
     if not original_text:
         raise HTTPException(status_code=400, detail="Provide 'text' and/or an upload file")
 
+    # Parse and validate selected_principles (default to all if not provided)
+    sp_normalized: str | None = None
+    if selected_principles and selected_principles.strip():
+        sp_ids = [s.strip().lower() for s in selected_principles.split(",") if s.strip()]
+        unknown = set(sp_ids) - VALID_PRINCIPLE_IDS
+        if unknown:
+            raise HTTPException(status_code=400, detail=f"Unknown principle IDs: {', '.join(sorted(unknown))}")
+        if not sp_ids:
+            raise HTTPException(status_code=400, detail="At least one principle must be selected")
+        sp_normalized = ",".join(sorted(set(sp_ids)))
+
     settings = get_settings()
     run = Run(
         input_type=mode,
@@ -88,6 +110,7 @@ async def create_run(
         discipline=discipline,
         assessment_type=assessment_type,
         learning_outcome=learning_outcome,
+        selected_principles=sp_normalized,
         original_text=original_text,
         model=settings.openai_model,
         status="created",

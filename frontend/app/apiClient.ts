@@ -1,3 +1,9 @@
+export type Principle = {
+  id: string;
+  title: string;
+  description: string;
+};
+
 export type Run = {
   id: string;
   created_at: string;
@@ -42,6 +48,12 @@ function apiBase(): string {
   return (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
 }
 
+export async function getPrinciples(): Promise<Principle[]> {
+  const res = await fetch(`${apiBase()}/api/principles`, { method: "GET" });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export async function createRun(params: {
   mode: "task" | "description";
   course_level: "undergraduate" | "graduate";
@@ -51,6 +63,7 @@ export async function createRun(params: {
   learning_outcome: string;
   text?: string;
   file?: File | null;
+  selected_principles?: string;
 }): Promise<{ run_id: string }> {
   const form = new FormData();
   form.append("mode", params.mode);
@@ -61,6 +74,7 @@ export async function createRun(params: {
   form.append("learning_outcome", params.learning_outcome);
   if (params.text) form.append("text", params.text);
   if (params.file) form.append("file", params.file);
+  if (params.selected_principles) form.append("selected_principles", params.selected_principles);
 
   const res = await fetch(`${apiBase()}/api/runs`, { method: "POST", body: form });
   if (!res.ok) throw new Error(await res.text());

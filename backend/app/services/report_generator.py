@@ -7,7 +7,7 @@ from sqlmodel import select
 
 from app.db.models import PrincipleResult, Report, Run
 from app.db.session import get_session
-from app.principles.ucalgary_principles import PRINCIPLES, get_principle
+from app.principles.ucalgary_principles import PRINCIPLES, Principle, get_principle
 
 
 def _safe_json_loads(s: str) -> dict[str, Any]:
@@ -50,14 +50,15 @@ def _escape_table_cell(s: str) -> str:
     return (s or "").replace("|", "\\|").replace("\n", " ").strip()
 
 
-def _build_report_markdown(*, run: Run, results: list[PrincipleResult]) -> str:
+def _build_report_markdown(*, run: Run, results: list[PrincipleResult], selected_principles: list[Principle]) -> str:
     """
     Deterministic report markdown.
-    This ensures the markdown ALWAYS contains all required sections and all principles,
+    This ensures the markdown ALWAYS contains all required sections and all selected principles,
     so PDF export (generated from markdown) is complete.
     """
     by_id = {r.principle_id: r for r in results}
     description = (run.generated_description or run.original_text or "").strip()
+    total = len(selected_principles)
 
     lines: list[str] = []
     lines.append("# Assessment Principles Report")
@@ -66,6 +67,7 @@ def _build_report_markdown(*, run: Run, results: list[PrincipleResult]) -> str:
     lines.append(f"- Input type: `{run.input_type}`")
     lines.append(f"- Source: `{run.source}`")
     lines.append(f"- Model: `{run.model}`")
+    lines.append(f"- Principles evaluated: **{total}** / {len(PRINCIPLES)}")
     lines.append("")
 
     lines.append("## Course context")
@@ -91,24 +93,24 @@ def _build_report_markdown(*, run: Run, results: list[PrincipleResult]) -> str:
 
     lines.append("## Executive summary")
     lines.append("")
-    lines.append(f"- Meets: **{counts.get('meets', 0)}** / {len(PRINCIPLES)}")
-    lines.append(f"- Partially meets: **{counts.get('partially_meets', 0)}** / {len(PRINCIPLES)}")
-    lines.append(f"- Does not meet: **{counts.get('does_not_meet', 0)}** / {len(PRINCIPLES)}")
-    lines.append(f"- Insufficient info: **{counts.get('insufficient_info', 0)}** / {len(PRINCIPLES)}")
+    lines.append(f"- Meets: **{counts.get('meets', 0)}** / {total}")
+    lines.append(f"- Partially meets: **{counts.get('partially_meets', 0)}** / {total}")
+    lines.append(f"- Does not meet: **{counts.get('does_not_meet', 0)}** / {total}")
+    lines.append(f"- Insufficient info: **{counts.get('insufficient_info', 0)}** / {total}")
     lines.append("")
 
     lines.append("## Summary table")
     lines.append("")
     lines.append("| ID | Rating | Principle |")
     lines.append("| --- | --- | --- |")
-    for p in PRINCIPLES:
+    for p in selected_principles:
         r = by_id[p.id]
         lines.append(f"| {p.id} | {_escape_table_cell(_label(r.meets_level))} | {_escape_table_cell(p.title)} |")
     lines.append("")
 
     lines.append("## Principle-by-principle results")
     lines.append("")
-    for p in PRINCIPLES:
+    for p in selected_principles:
         r = by_id[p.id]
         obj = _safe_json_loads(r.json_output)
         lines.append(f"### ({p.id}) {p.title}")
@@ -156,13 +158,20 @@ def generate_report_for_run(run_id: str) -> str:
         if not run:
             raise ValueError("Run not found")
 
+        # Determine which principles were selected for this run
+        if run.selected_principles:
+            selected_ids = set(run.selected_principles.split(","))
+        else:
+            selected_ids = {p.id for p in PRINCIPLES}
+        selected_principles = [p for p in PRINCIPLES if p.id in selected_ids]
+
         results = session.exec(
             select(PrincipleResult).where(PrincipleResult.run_id == run_id).order_by(PrincipleResult.principle_id)
         ).all()
-        if len(results) != len(PRINCIPLES):
-            raise ValueError(f"Run does not yet have {len(PRINCIPLES)} principle results")
+        if len(results) != len(selected_principles):
+            raise ValueError(f"Run does not yet have {len(selected_principles)} principle results (has {len(results)})")
 
-        report_md = _build_report_markdown(run=run, results=list(results))
+        report_md = _build_report_markdown(run=run, results=list(results), selected_principles=selected_principles)
 
         report = Report(run_id=run_id, report_markdown=report_md)
         session.add(report)

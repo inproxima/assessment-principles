@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createReport, createRun, getRun, startEvaluate, type GetRunResponse } from "./apiClient";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createReport, createRun, getPrinciples, getRun, startEvaluate, type GetRunResponse, type Principle } from "./apiClient";
+import { PrincipleSelector } from "./components/PrincipleSelector";
 import { ReportViewer } from "./components/ReportViewer";
 import { Panel } from "./components/ui/Panel";
 import { SectionHeader } from "./components/ui/SectionHeader";
@@ -26,21 +27,43 @@ export default function Page() {
   const [discipline, setDiscipline] = useState("");
   const [assessmentType, setAssessmentType] = useState<AssessmentType | "">("");
   const [learningOutcomes, setLearningOutcomes] = useState("");
+  const [principles, setPrinciples] = useState<Principle[]>([]);
+  const [selectedPrinciples, setSelectedPrinciples] = useState<Set<string>>(new Set());
   const [runId, setRunId] = useState<string | null>(null);
   const [data, setData] = useState<GetRunResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Fetch available principles on mount
+  useEffect(() => {
+    getPrinciples()
+      .then((ps) => {
+        setPrinciples(ps);
+        setSelectedPrinciples(new Set(ps.map((p) => p.id)));
+      })
+      .catch(() => {
+        // Fallback: use hardcoded IDs if API is unreachable
+        const fallbackIds = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
+        setSelectedPrinciples(new Set(fallbackIds));
+      });
+  }, []);
+
+  const handlePrincipleChange = useCallback((ids: Set<string>) => {
+    setSelectedPrinciples(ids);
+  }, []);
+
   const progress = useMemo(() => {
-    const total = 11;
+    const total = selectedPrinciples.size;
     const done = data?.principle_results?.length || 0;
     return { done, total };
-  }, [data]);
+  }, [data, selectedPrinciples]);
 
   const missingContext =
     !courseLevel || !modality || !discipline.trim() || !assessmentType || !learningOutcomes.trim()
       ? "Course context is required: course level, modality, discipline, assessment type, and learning outcomes."
-      : null;
+      : selectedPrinciples.size === 0
+        ? "At least one assessment principle must be selected."
+        : null;
 
   async function onGenerateReport() {
     setError(null);
@@ -59,7 +82,8 @@ export default function Page() {
         assessment_type: assessmentType as AssessmentType,
         learning_outcome: learningOutcomes.trim(),
         text,
-        file
+        file,
+        selected_principles: Array.from(selectedPrinciples).join(","),
       });
       setRunId(created.run_id);
       await startEvaluate(created.run_id);
@@ -126,8 +150,7 @@ export default function Page() {
               Assessment Principles Evaluator
             </h1>
             <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-slate-600">
-              Paste an assessment task/description (and/or upload a PDF/DOCX). The backend generates a description (if needed), evaluates against 11
-              principles, stores results, and creates a report.
+              Paste an assessment task/description (and/or upload a PDF/DOCX). Select the principles you want to evaluate against, then generate a report.
             </p>
           </div>
         </div>
@@ -197,6 +220,24 @@ export default function Page() {
             </div>
           ) : null}
         </div>
+      </Panel>
+
+      <Panel>
+        <SectionHeader
+          title="Assessment principles"
+          purpose="Select which principles to evaluate against. Expand each principle to read its description."
+        />
+        <PrincipleSelector
+          principles={principles}
+          selectedIds={selectedPrinciples}
+          onChange={handlePrincipleChange}
+          disabled={busy}
+        />
+        {selectedPrinciples.size === 0 ? (
+          <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+            At least one assessment principle must be selected.
+          </div>
+        ) : null}
       </Panel>
 
       <Panel>

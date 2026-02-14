@@ -27,6 +27,8 @@ class Run(SQLModel, table=True):
     assessment_type: Optional[str] = None  # formative|summative
     learning_outcome: Optional[str] = None
 
+    selected_principles: Optional[str] = None  # comma-separated principle IDs, e.g. "a,b,c,f"
+
     original_text: str
     generated_description: Optional[str] = None
 
