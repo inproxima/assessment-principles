@@ -161,7 +161,7 @@ export default function Page() {
               Assessment Principles
             </p>
             <h1 className="mt-2 font-display text-3xl tracking-tight text-stone-900 sm:text-4xl">
-              Evaluation Studio
+              Studio
             </h1>
             <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-stone-500">
               Paste an assessment task or description, select evaluation principles, and generate a narrative feedback report with actionable insights.
@@ -196,16 +196,21 @@ export default function Page() {
               <SelectField
                 label="Modality"
                 labelSuffix={
-                  <a
-                    href="https://www.ucalgary.ca/student-services/calendar-scheduling/scheduling/scheduling-guidelines/definitions-instruction-modes"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="View modality definitions"
-                    className="ml-2 inline-flex h-4 w-4 items-center justify-center rounded-full border border-stone-300 text-[9px] font-bold leading-none text-stone-400 transition-colors hover:border-burgundy-700 hover:text-burgundy-700"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    ?
-                  </a>
+                  <span className="group/tip relative ml-2 inline-flex">
+                    <a
+                      href="https://www.ucalgary.ca/student-services/calendar-scheduling/scheduling/scheduling-guidelines/definitions-instruction-modes"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-stone-300 text-[9px] font-bold leading-none text-stone-400 transition-colors group-hover/tip:border-burgundy-700 group-hover/tip:text-burgundy-700"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      ?
+                    </a>
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-stone-900 px-3 py-2 text-xs font-normal normal-case tracking-normal text-white opacity-0 shadow-warm-lg transition-opacity duration-200 group-hover/tip:opacity-100">
+                      View modality definitions at UCalgary
+                      <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-stone-900" />
+                    </span>
+                  </span>
                 }
                 value={modality}
                 onChange={(e) => setModality(e.target.value as Modality | "")}
@@ -402,7 +407,7 @@ export default function Page() {
           <span className="diamond" />
         </div>
         <p className="text-xs text-stone-400">
-          Assessment Principles Evaluation Studio
+          Assessment Principles Studio
         </p>
       </footer>
     </main>

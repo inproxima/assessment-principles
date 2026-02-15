@@ -60,7 +60,7 @@ export function ReportDocument({
         <div className="flex items-start justify-between gap-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-burgundy-900/60">
-              Assessment Principles
+              Assessment Principles Studio
             </p>
             <h1 className="mt-2 font-display text-3xl tracking-tight text-stone-900 sm:text-4xl">
               Feedback Report

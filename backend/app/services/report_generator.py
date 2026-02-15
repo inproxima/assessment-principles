@@ -33,7 +33,7 @@ def _build_report_markdown(*, run: Run, results: list[PrincipleResult], selected
     total = selected_principles_count
 
     lines: list[str] = []
-    lines.append("# Assessment Principles Report")
+    lines.append("# Assessment Principles Studio — Feedback Report")
     lines.append("")
     lines.append(f"- Run ID: `{run.id}`")
     lines.append(f"- Input type: `{run.input_type}`")
@@ -54,7 +54,37 @@ def _build_report_markdown(*, run: Run, results: list[PrincipleResult], selected
     lines.append((run.learning_outcome or "").strip() or "_(Not provided)_")
     lines.append("")
 
-    # Narrative feedback sections
+    # --- Principles at a Glance ---
+    sorted_results = sorted(results, key=lambda r: r.principle_id)
+    aligned = [r for r in sorted_results if r.meets_level == "meets"]
+    partially = [r for r in sorted_results if r.meets_level == "partially_meets"]
+    does_not = [r for r in sorted_results if r.meets_level == "does_not_meet"]
+    not_observed = [r for r in sorted_results if r.meets_level == "insufficient_info"]
+    journey = partially + does_not + not_observed
+
+    lines.append("## Principles at a Glance")
+    lines.append("")
+
+    lines.append("### Alignment")
+    lines.append("")
+    if aligned:
+        for r in aligned:
+            lines.append(f"- **({r.principle_id.upper()})** {r.principle_title}")
+    else:
+        lines.append("_No principles fully met._")
+    lines.append("")
+
+    lines.append("### Continue the Journey")
+    lines.append("")
+    if journey:
+        for r in journey:
+            suffix = " *(Not observed)*" if r.meets_level == "insufficient_info" else ""
+            lines.append(f"- **({r.principle_id.upper()})** {r.principle_title}{suffix}")
+    else:
+        lines.append("_No principles in this category._")
+    lines.append("")
+
+    # --- Narrative feedback sections ---
     alignment = (run.narrative_alignment or "").strip()
     continue_journey = (run.narrative_continue_journey or "").strip()
 

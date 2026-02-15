@@ -119,7 +119,7 @@ def markdown_to_pdf(*, report_markdown: str, filename: str) -> PdfRenderResult:
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assessment Principles Report</title>
+    <title>Assessment Principles Studio — Feedback Report</title>
   </head>
   <body>
     {clean_body}
