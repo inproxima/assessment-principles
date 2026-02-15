@@ -314,7 +314,7 @@ export default function Page() {
 
       <div ref={reportTopRef} />
       {showReport ? (
-        <ReportViewer run={data?.run} markdown={reportMarkdown} />
+        <ReportViewer run={data?.run} results={data?.principle_results} markdown={reportMarkdown} />
       ) : runId ? (
         <Panel>
           {status === "failed" ? (

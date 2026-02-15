@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { Run } from "../apiClient";
+import type { PrincipleResult, Run } from "../apiClient";
 import { Panel } from "./ui/Panel";
 import { SectionHeader } from "./ui/SectionHeader";
 
@@ -29,9 +29,11 @@ function NarrativeSection({ markdown }: { markdown: string }) {
 }
 
 export function ReportDocument({
-  run
+  run,
+  results
 }: {
   run: Run;
+  results: PrincipleResult[];
 }) {
   const learningOutcomes = (run.learning_outcome || "").trim();
   const originalText = (run.original_text || "").trim();
@@ -41,6 +43,14 @@ export function ReportDocument({
 
   const alignment = (run.narrative_alignment || "").trim();
   const continueJourney = (run.narrative_continue_journey || "").trim();
+
+  // Group principles by section
+  const sorted = [...results].sort((a, b) => a.principle_id.localeCompare(b.principle_id));
+  const alignedPrinciples = sorted.filter((r) => r.meets_level === "meets");
+  const journeyPrinciples = sorted.filter(
+    (r) => r.meets_level === "partially_meets" || r.meets_level === "does_not_meet"
+  );
+  const notAssessed = sorted.filter((r) => r.meets_level === "insufficient_info");
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -114,6 +124,90 @@ export function ReportDocument({
           </div>
         </details>
       </Panel>
+
+      {sorted.length > 0 && (
+        <Panel className="mb-6">
+          <SectionHeader
+            title="Principles at a glance"
+            purpose="Which assessment principles are discussed in each section below."
+          />
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Alignment column */}
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+                  <svg className="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Alignment</span>
+                <span className="ml-auto text-xs font-medium text-emerald-600">{alignedPrinciples.length}</span>
+              </div>
+              {alignedPrinciples.length > 0 ? (
+                <ul className="space-y-2">
+                  {alignedPrinciples.map((r) => (
+                    <li key={r.principle_id} className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-200 text-[10px] font-bold text-emerald-800">
+                        {r.principle_id}
+                      </span>
+                      <span className="text-xs leading-5 text-slate-800">{r.principle_title}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No principles fully met.</p>
+              )}
+            </div>
+
+            {/* Continue the Journey column */}
+            <div className="rounded-xl border border-sky-200 bg-sky-50/40 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-100">
+                  <svg className="h-3.5 w-3.5 text-sky-600" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wide text-sky-700">Continue the Journey</span>
+                <span className="ml-auto text-xs font-medium text-sky-600">{journeyPrinciples.length}</span>
+              </div>
+              {journeyPrinciples.length > 0 ? (
+                <ul className="space-y-2">
+                  {journeyPrinciples.map((r) => (
+                    <li key={r.principle_id} className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-sky-200 text-[10px] font-bold text-sky-800">
+                        {r.principle_id}
+                      </span>
+                      <span className="text-xs leading-5 text-slate-800">{r.principle_title}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No principles in this category.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Not assessed row */}
+          {notAssessed.length > 0 && (
+            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Not assessed</span>
+                <span className="ml-auto text-xs font-medium text-slate-400">{notAssessed.length}</span>
+              </div>
+              <ul className="flex flex-wrap gap-2">
+                {notAssessed.map((r) => (
+                  <li key={r.principle_id} className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[9px] font-bold text-slate-600">
+                      {r.principle_id}
+                    </span>
+                    <span className="text-[11px] leading-4 text-slate-500">{r.principle_title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Panel>
+      )}
 
       <Panel className="mb-6">
         <div className="flex items-start gap-3">
