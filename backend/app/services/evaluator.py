@@ -260,8 +260,11 @@ def _generate_narrative_feedback(
         "Approach from a place of strength — acknowledge what is already working, then suggest how to build on it. "
         "Focus on principles rated 'partially_meets' or 'does_not_meet'. "
         "Provide concrete, actionable examples tailored to the discipline, course level, and assessment type. "
-        "Be helpful and specific — give the instructor ideas they can implement. "
-        "If a principle has 'insufficient_info', do NOT treat it as a gap; skip it.\n\n"
+        "Be helpful and specific — give the instructor ideas they can implement.\n"
+        "Additionally, for any principles rated 'insufficient_info', include a closing paragraph that names those principles "
+        "and explains what kind of information or documentation the instructor could provide so the tool can evaluate alignment "
+        "(e.g., rubrics, grading policies, assignment instructions, reflection prompts, etc.). "
+        "Frame this helpfully — not as a deficiency, but as an invitation to share more so the tool can give fuller feedback.\n\n"
         "Return JSON only (no markdown fences):\n"
         '{"alignment": "...", "continue_the_journey": "..."}\n'
         "Each section should be 150-300 words of flowing narrative paragraphs."

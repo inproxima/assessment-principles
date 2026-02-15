@@ -47,10 +47,12 @@ export function ReportDocument({
   // Group principles by section
   const sorted = [...results].sort((a, b) => a.principle_id.localeCompare(b.principle_id));
   const alignedPrinciples = sorted.filter((r) => r.meets_level === "meets");
-  const journeyPrinciples = sorted.filter(
+  const improvePrinciples = sorted.filter(
     (r) => r.meets_level === "partially_meets" || r.meets_level === "does_not_meet"
   );
-  const notAssessed = sorted.filter((r) => r.meets_level === "insufficient_info");
+  const notObserved = sorted.filter((r) => r.meets_level === "insufficient_info");
+  // All non-aligned principles appear in the Continue the Journey column
+  const journeyPrinciples = [...improvePrinciples, ...notObserved];
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -172,40 +174,30 @@ export function ReportDocument({
               </div>
               {journeyPrinciples.length > 0 ? (
                 <ul className="space-y-2">
-                  {journeyPrinciples.map((r) => (
-                    <li key={r.principle_id} className="flex items-start gap-2.5">
-                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-sky-200 text-[10px] font-bold text-sky-800">
-                        {r.principle_id}
-                      </span>
-                      <span className="text-xs leading-5 text-slate-800">{r.principle_title}</span>
-                    </li>
-                  ))}
+                  {journeyPrinciples.map((r) => {
+                    const isNotObserved = r.meets_level === "insufficient_info";
+                    return (
+                      <li key={r.principle_id} className="flex items-start gap-2.5">
+                        <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${isNotObserved ? "bg-slate-200 text-slate-600" : "bg-sky-200 text-sky-800"}`}>
+                          {r.principle_id}
+                        </span>
+                        <span className="text-xs leading-5 text-slate-800">
+                          {r.principle_title}
+                          {isNotObserved && (
+                            <span className="ml-1.5 inline-flex items-center rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
+                              Not observed
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p className="text-xs text-slate-500 italic">No principles in this category.</p>
               )}
             </div>
           </div>
-
-          {/* Not assessed row */}
-          {notAssessed.length > 0 && (
-            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Not assessed</span>
-                <span className="ml-auto text-xs font-medium text-slate-400">{notAssessed.length}</span>
-              </div>
-              <ul className="flex flex-wrap gap-2">
-                {notAssessed.map((r) => (
-                  <li key={r.principle_id} className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[9px] font-bold text-slate-600">
-                      {r.principle_id}
-                    </span>
-                    <span className="text-[11px] leading-4 text-slate-500">{r.principle_title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </Panel>
       )}
 
