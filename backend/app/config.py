@@ -31,7 +31,7 @@ def get_settings() -> Settings:
         openai_timeout_seconds=float(os.getenv("OPENAI_TIMEOUT_SECONDS", "60").strip()),
         openai_max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2").strip()),
         database_url=os.getenv("DATABASE_URL", "sqlite:///./app.db").strip(),
-        allowed_origins=_split_csv(os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")),
+        allowed_origins=_split_csv(os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://assessment-principles-1.onrender.com")),
         eval_max_concurrency=int(os.getenv("EVAL_MAX_CONCURRENCY", "4").strip()),
     )
 
