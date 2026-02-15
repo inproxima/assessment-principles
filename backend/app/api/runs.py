@@ -116,12 +116,13 @@ async def create_run(
         status="created",
     )
 
+    run_id = run.id  # already set by uuid4 default_factory
+
     with get_session() as session:
         session.add(run)
         session.commit()
-        session.refresh(run)
 
-    return {"run_id": run.id}
+    return {"run_id": run_id}
 
 
 @router.post("/runs/{run_id}/evaluate")

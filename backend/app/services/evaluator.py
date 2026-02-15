@@ -221,14 +221,17 @@ def evaluate_run(run_id: str) -> None:
             else:
                 desc = run.original_text
 
+            # Capture values we need after the session closes
+            selected_principles_csv = run.selected_principles
+
             run.status = "evaluating"
             run.error = None
             session.add(run)
             session.commit()
 
         # Determine which principles to evaluate
-        if run.selected_principles:
-            selected_ids = set(run.selected_principles.split(","))
+        if selected_principles_csv:
+            selected_ids = set(selected_principles_csv.split(","))
         else:
             selected_ids = {p.id for p in PRINCIPLES}
         principles_to_eval = [p for p in PRINCIPLES if p.id in selected_ids]
