@@ -26,7 +26,7 @@ export function TextareaField({
         id={id}
         className={[
           inputBase,
-          "min-h-[120px] leading-relaxed",
+          "min-h-[120px] resize-y leading-relaxed",
           serif ? "font-serif" : "",
           className
         ]
@@ -36,4 +36,3 @@ export function TextareaField({
     </Field>
   );
 }
-

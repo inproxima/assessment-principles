@@ -14,9 +14,10 @@ export function Panel({
   return (
     <section
       className={[
-        "rounded-lg border border-slate-200 bg-white",
-        padding ? "px-6 py-5" : "",
-        focusWithinRing ? "focus-within:ring-1 focus-within:ring-slate-200" : "",
+        "rounded-xl border border-stone-200/80 bg-white shadow-warm transition-shadow duration-300",
+        "hover:shadow-warm-lg",
+        padding ? "px-7 py-6" : "",
+        focusWithinRing ? "focus-within:ring-2 focus-within:ring-burgundy-700/5" : "",
         className
       ]
         .filter(Boolean)
@@ -26,4 +27,3 @@ export function Panel({
     </section>
   );
 }
-

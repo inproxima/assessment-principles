@@ -55,8 +55,8 @@ export function PrincipleSelector({
   return (
     <div>
       {/* Toolbar */}
-      <div className="mb-3 flex items-center gap-3">
-        <label className="flex items-center gap-2 text-xs text-slate-600 select-none cursor-pointer">
+      <div className="mb-3 flex items-center gap-4">
+        <label className="flex cursor-pointer select-none items-center gap-2.5 text-xs font-medium text-stone-600 transition-colors hover:text-stone-900">
           <input
             type="checkbox"
             checked={allSelected}
@@ -65,48 +65,49 @@ export function PrincipleSelector({
             }}
             onChange={toggleSelectAll}
             disabled={disabled}
-            className="h-3.5 w-3.5 rounded border-slate-300 text-slate-800 focus:ring-slate-400 disabled:opacity-50"
+            className="h-4 w-4 rounded border-stone-300 text-burgundy-900 transition-colors focus:ring-burgundy-700/20 disabled:opacity-50"
           />
           Select all
         </label>
-        <span className="text-xs text-slate-400">
-          {selectedIds.size} / {principles.length} selected
+        <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-500">
+          {selectedIds.size} / {principles.length}
         </span>
       </div>
 
       {/* Accordion */}
-      <div className="divide-y divide-slate-200 rounded-md border border-slate-200">
-        {principles.map((p) => {
+      <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-warm-sm">
+        {principles.map((p, index) => {
           const isExpanded = expandedIds.has(p.id);
           const isChecked = selectedIds.has(p.id);
+          const isLast = index === principles.length - 1;
 
           return (
-            <div key={p.id}>
+            <div key={p.id} className={!isLast ? "border-b border-stone-100" : ""}>
               {/* Header row */}
-              <div className="flex items-start gap-3 px-4 py-3">
-                {/* Checkbox – stops click propagation so it doesn't toggle accordion */}
+              <div className={`flex items-start gap-3 px-4 py-3.5 transition-colors duration-150 ${isChecked ? "bg-burgundy-50/30" : "hover:bg-stone-50"}`}>
+                {/* Checkbox */}
                 <input
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => togglePrinciple(p.id)}
                   disabled={disabled}
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-slate-300 text-slate-800 focus:ring-slate-400 disabled:opacity-50"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 text-burgundy-900 transition-colors focus:ring-burgundy-700/20 disabled:opacity-50"
                 />
 
                 {/* Clickable area toggles accordion */}
                 <button
                   type="button"
                   onClick={() => toggleExpanded(p.id)}
-                  className="flex min-w-0 flex-1 items-start gap-2 text-left"
+                  className="flex min-w-0 flex-1 items-start gap-2.5 text-left"
                 >
-                  <span className="shrink-0 mt-px text-xs font-semibold uppercase text-slate-400 w-4">
-                    {p.id}
+                  <span className="mt-px w-5 shrink-0 text-center font-display text-xs font-semibold text-burgundy-900/50">
+                    {p.id.toUpperCase()}
                   </span>
-                  <span className="min-w-0 text-xs leading-snug text-slate-700 line-clamp-2">
+                  <span className="min-w-0 text-[13px] leading-snug text-stone-700 line-clamp-2">
                     {p.title}
                   </span>
                   <svg
-                    className={`ml-auto mt-0.5 h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${
+                    className={`ml-auto mt-0.5 h-4 w-4 shrink-0 text-stone-400 transition-transform duration-300 ease-out ${
                       isExpanded ? "rotate-180" : ""
                     }`}
                     fill="none"
@@ -121,12 +122,12 @@ export function PrincipleSelector({
 
               {/* Expanded content */}
               <div
-                className={`overflow-hidden transition-all duration-200 ${
-                  isExpanded ? "max-h-96" : "max-h-0"
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="px-4 pb-4 pl-11">
-                  <p className="text-xs leading-relaxed text-slate-500">{p.description}</p>
+                <div className="border-t border-stone-100 bg-stone-50/50 px-4 pb-4 pl-[52px] pt-3">
+                  <p className="text-[13px] leading-relaxed text-stone-500">{p.description}</p>
                 </div>
               </div>
             </div>

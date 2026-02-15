@@ -1,5 +1,6 @@
 export const inputBase =
-  "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 " +
-  "focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 " +
-  "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500";
-
+  "w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 " +
+  "shadow-warm-sm transition-all duration-200 " +
+  "placeholder:text-stone-400 " +
+  "focus:border-burgundy-700 focus:outline-none focus:ring-2 focus:ring-burgundy-700/10 " +
+  "disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500";

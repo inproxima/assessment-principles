@@ -17,17 +17,16 @@ export function Field({
   labelSuffix?: ReactNode;
   children: ReactNode;
 }) {
-  const requiredClass = requiredTone === "amber" ? "text-amber-700" : "text-slate-400";
+  const requiredClass = requiredTone === "amber" ? "text-amber-700" : "text-stone-400";
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="text-xs font-medium text-slate-700">
+    <div className="space-y-2">
+      <label htmlFor={htmlFor} className="text-xs font-semibold uppercase tracking-wide text-stone-600">
         {label}
-        {required && <span className={`ml-1 text-xs ${requiredClass}`}>(required)</span>}
+        {required && <span className={`ml-1.5 text-xs font-normal normal-case tracking-normal ${requiredClass}`}>(required)</span>}
         {labelSuffix}
       </label>
       {children}
-      {helperText ? <p className="mt-1 text-xs text-slate-500">{helperText}</p> : null}
+      {helperText ? <p className="text-xs text-stone-500">{helperText}</p> : null}
     </div>
   );
 }
-

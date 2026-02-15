@@ -22,9 +22,8 @@ export function TextField({
       <input
         {...props}
         id={id}
-        className={[inputBase, "placeholder:text-slate-400", className].filter(Boolean).join(" ")}
+        className={[inputBase, className].filter(Boolean).join(" ")}
       />
     </Field>
   );
 }
-
