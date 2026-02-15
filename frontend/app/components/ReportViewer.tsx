@@ -1,15 +1,13 @@
-import type { PrincipleResult, Run } from "../apiClient";
+import type { Run } from "../apiClient";
 import { ReportDocument } from "./ReportDocument";
 import { Panel } from "./ui/Panel";
 import { SectionHeader } from "./ui/SectionHeader";
 
 export function ReportViewer({
   run,
-  results,
   markdown
 }: {
   run: Run | null | undefined;
-  results: PrincipleResult[] | null | undefined;
   markdown: string | null | undefined;
 }) {
   // Do not display the report UI until report generation is complete.
@@ -45,7 +43,7 @@ export function ReportViewer({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <SectionHeader
             title="Report"
-            purpose="Professional on-screen view. Download PDF is generated from markdown."
+            purpose="Narrative feedback on your assessment. Download PDF or markdown below."
           />
 
           <div className="flex items-center gap-2">
@@ -75,9 +73,8 @@ export function ReportViewer({
       </div>
 
       <article id="report" className="px-6 py-6">
-        <ReportDocument run={run} results={results || []} />
+        <ReportDocument run={run} />
       </article>
     </Panel>
   );
 }
-

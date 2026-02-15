@@ -1,79 +1,11 @@
-import type { PrincipleResult, Run } from "../apiClient";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import type { Run } from "../apiClient";
 import { Panel } from "./ui/Panel";
 import { SectionHeader } from "./ui/SectionHeader";
 
-type ParsedPrinciple = {
-  id: string;
-  title: string;
-  meets_level: string;
-  evidence?: string;
-  gaps?: string;
-  recommendation?: string;
-};
-
-function label(level: string): string {
-  switch (level) {
-    case "meets":
-      return "Meets";
-    case "partially_meets":
-      return "Partially meets";
-    case "does_not_meet":
-      return "Does not meet";
-    case "insufficient_info":
-      return "Insufficient info";
-    default:
-      return level;
-  }
-}
-
-function badgeClass(level: string): string {
-  switch (level) {
-    case "meets":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "partially_meets":
-      return "bg-amber-50 text-amber-700 border-amber-200";
-    case "does_not_meet":
-      return "bg-rose-50 text-rose-700 border-rose-200";
-    case "insufficient_info":
-      return "bg-slate-50 text-slate-700 border-slate-200";
-    default:
-      return "bg-slate-50 text-slate-700 border-slate-200";
-  }
-}
-
-function safeJsonParse(s: string): any {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return {};
-  }
-}
-
-function normalizeText(v: unknown): string | undefined {
-  const s = typeof v === "string" ? v.trim() : "";
-  if (!s || s === "N/A") return undefined;
-  return s;
-}
-
-function toParsed(results: PrincipleResult[]): ParsedPrinciple[] {
-  return results.map((r) => {
-    const obj = safeJsonParse(r.json_output);
-    return {
-      id: r.principle_id,
-      title: r.principle_title,
-      meets_level: r.meets_level,
-      evidence: normalizeText(obj?.evidence),
-      gaps: normalizeText(obj?.gaps),
-      recommendation: normalizeText(obj?.recommendation)
-    };
-  });
-}
-
 function formatDate(iso?: string): string {
   if (!iso) return "—";
-  // Ensure we display in the user's local timezone, even if the backend returns a
-  // timezone-less timestamp (common with some DBs/serializers). In that case we
-  // treat it as UTC so local conversion is correct.
   const normalized = iso.includes("T") ? iso : iso.replace(" ", "T");
   const hasTimeZone = /[zZ]|[+\-]\d\d:?(\d\d)?$/.test(normalized);
   const d = new Date(hasTimeZone ? normalized : `${normalized}Z`);
@@ -88,28 +20,27 @@ function formatDate(iso?: string): string {
   });
 }
 
+function NarrativeSection({ markdown }: { markdown: string }) {
+  return (
+    <div className="prose prose-slate prose-sm max-w-none leading-relaxed text-slate-800">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+    </div>
+  );
+}
+
 export function ReportDocument({
-  run,
-  results
+  run
 }: {
   run: Run;
-  results: PrincipleResult[];
 }) {
-  const parsed = toParsed(results).sort((a, b) => a.id.localeCompare(b.id));
-  const expectedTotal = 11;
   const learningOutcomes = (run.learning_outcome || "").trim();
   const originalText = (run.original_text || "").trim();
   const normalized = (s: string) => s.replace(/\s+/g, " ").trim();
   const learningOutcomesLooksLikeAssessmentInput =
     !!learningOutcomes && !!originalText && normalized(learningOutcomes) === normalized(originalText);
 
-  const counts = parsed.reduce(
-    (acc, r) => {
-      acc[r.meets_level] = (acc[r.meets_level] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const alignment = (run.narrative_alignment || "").trim();
+  const continueJourney = (run.narrative_continue_journey || "").trim();
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -118,10 +49,10 @@ export function ReportDocument({
           <div>
             <p className="text-xs font-semibold tracking-wide text-slate-600">Assessment Principles</p>
             <h1 className="mt-1 text-balance font-serif text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              Report
+              Feedback Report
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Generated for course context and assessment input. Use the summary to identify strengths and priorities for improvement.
+              Narrative feedback on your assessment, highlighting strengths and opportunities for growth.
             </p>
           </div>
           <dl className="hidden min-w-[220px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-700 shadow-sm sm:block">
@@ -156,10 +87,6 @@ export function ReportDocument({
             <div className="text-xs font-medium text-slate-500">Assessment type</div>
             <div className="mt-1 text-sm font-semibold text-slate-900">{run.assessment_type || "—"}</div>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-            <div className="text-xs font-medium text-slate-500">Input type</div>
-            <div className="mt-1 text-sm font-semibold text-slate-900">{run.input_type}</div>
-          </div>
         </div>
 
         <div className="mt-4">
@@ -183,119 +110,56 @@ export function ReportDocument({
             View assessment text <span className="ml-2 text-slate-400">⌄</span>
           </summary>
           <div className="mt-3 max-h-[360px] overflow-auto rounded-md border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-900">
-            <div className="whitespace-pre-wrap break-words">{(run.original_text || "").trim() || "—"}</div>
+            <div className="whitespace-pre-wrap break-words">{originalText || "—"}</div>
           </div>
         </details>
       </Panel>
 
       <Panel className="mb-6">
-        <SectionHeader
-          title="Executive summary"
-          purpose={`Counts across all principles (expected ${expectedTotal}). If a principle is not judgeable from provided inputs, it is marked “Insufficient info”.`}
-        />
-
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            ["meets", "Meets"],
-            ["partially_meets", "Partially meets"],
-            ["does_not_meet", "Does not meet"],
-            ["insufficient_info", "Insufficient info"]
-          ].map(([key, title]) => (
-            <div key={key} className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="text-xs font-medium text-slate-500">{title}</div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">
-                {counts[key] || 0}
-                <span className="text-sm font-medium text-slate-500"> / {expectedTotal}</span>
-              </div>
-            </div>
-          ))}
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+            <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <SectionHeader
+              title="Alignment"
+              purpose="Assessment principles that are well represented, with reasoning."
+            />
+          </div>
         </div>
-      </Panel>
-
-      <Panel className="mb-6">
-        <SectionHeader title="Summary table" purpose="A compact overview of ratings across all principles." />
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                <th className="whitespace-nowrap border border-slate-200 px-3 py-2">ID</th>
-                <th className="whitespace-nowrap border border-slate-200 px-3 py-2">Rating</th>
-                <th className="min-w-[360px] border border-slate-200 px-3 py-2">Principle</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-900">
-              {parsed.map((p) => (
-                <tr key={p.id} className="align-top">
-                  <td className="border border-slate-200 px-3 py-2 font-mono text-xs">{p.id}</td>
-                  <td className="border border-slate-200 px-3 py-2">
-                    <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium ${badgeClass(p.meets_level)}`}>
-                      {label(p.meets_level)}
-                    </span>
-                  </td>
-                  <td className="border border-slate-200 px-3 py-2 leading-6">{p.title}</td>
-                </tr>
-              ))}
-              {!parsed.length && (
-                <tr>
-                  <td colSpan={3} className="border border-slate-200 px-3 py-8 text-center text-sm text-slate-500">
-                    No principle results available yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-5">
+          {alignment ? (
+            <NarrativeSection markdown={alignment} />
+          ) : (
+            <p className="text-sm text-slate-500 italic">Narrative not yet generated.</p>
+          )}
         </div>
       </Panel>
 
       <Panel>
-        <SectionHeader title="Principle-by-principle results" purpose="Evidence, gaps, and recommendations per principle." />
-        <div className="mt-5 space-y-4">
-          {parsed.map((p) => (
-            <section key={p.id} className="rounded-lg border border-slate-200 bg-white p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    <span className="font-mono text-xs text-slate-500">({p.id})</span> {p.title}
-                  </h3>
-                </div>
-                <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium ${badgeClass(p.meets_level)}`}>
-                  {label(p.meets_level)}
-                </span>
-              </div>
-
-              <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-                {p.evidence && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Evidence</dt>
-                    <dd className="mt-2 leading-6 text-slate-900">{p.evidence}</dd>
-                  </div>
-                )}
-                {p.gaps && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Gaps</dt>
-                    <dd className="mt-2 leading-6 text-slate-900">{p.gaps}</dd>
-                  </div>
-                )}
-                {p.recommendation && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Recommendation</dt>
-                    <dd className="mt-2 leading-6 text-slate-900">{p.recommendation}</dd>
-                  </div>
-                )}
-                {!p.evidence && !p.gaps && !p.recommendation && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 sm:col-span-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Notes</dt>
-                    <dd className="mt-2 leading-6 text-slate-900">No additional details were provided for this principle.</dd>
-                  </div>
-                )}
-              </dl>
-            </section>
-          ))}
-
-          {!parsed.length && <p className="text-sm text-slate-600">No results to display yet.</p>}
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-100">
+            <svg className="h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+            </svg>
+          </div>
+          <div>
+            <SectionHeader
+              title="Continue the Journey"
+              purpose="Recommendations to further strengthen your assessment, with examples."
+            />
+          </div>
+        </div>
+        <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50/50 p-5">
+          {continueJourney ? (
+            <NarrativeSection markdown={continueJourney} />
+          ) : (
+            <p className="text-sm text-slate-500 italic">Narrative not yet generated.</p>
+          )}
         </div>
       </Panel>
     </div>
   );
 }
-

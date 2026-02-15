@@ -7,6 +7,8 @@ from typing import Any
 
 from sqlmodel import delete
 
+from sqlmodel import select
+
 from app.config import get_settings
 from app.db.models import PrincipleResult, Run
 from app.db.session import get_session
@@ -95,8 +97,11 @@ def _principle_prompt(
         "You evaluate an assessment description against ONE assessment principle.\n"
         "Return JSON only (no markdown, no code fences).\n"
         "Only use the information explicitly provided in the course context and assessment description."
+        f"use the learning outcome in the {course_context} to speak to how the assessment meets or doesn't meet the principle."
+        "Also look for specific markers in the assessment description that supports the principle."
+        "If the assessment is poorly structured, poorly written, or poorly designed, it is likely to not meet the principle."
+        "The goal is provide feedback on how the assessment meets the principle, and if it doesn't, what are teh next steps to improve the assessment."
     )
-
     schema = (
         '{\n'
         '  "principle_id": "a..k",\n'
@@ -196,6 +201,85 @@ def _evaluate_one_principle(*, course_context: str, description: str, p: Princip
     return obj
 
 
+def _generate_narrative_feedback(
+    *,
+    course_context: str,
+    description: str,
+    principle_results: list[dict[str, Any]],
+    principles_evaluated: list[Principle],
+) -> tuple[str, str]:
+    """
+    Generate two narrative feedback sections from the principle evaluation results.
+
+    Returns (alignment_text, continue_journey_text).
+    """
+    oai = _get_openai()
+
+    # Build a summary of results for the prompt
+    results_summary_parts: list[str] = []
+    counts: dict[str, int] = {"meets": 0, "partially_meets": 0, "does_not_meet": 0, "insufficient_info": 0}
+
+    for p in principles_evaluated:
+        result = next((r for r in principle_results if r.get("principle_id") == p.id), None)
+        if not result:
+            continue
+        level = result.get("meets_level", "insufficient_info")
+        counts[level] = counts.get(level, 0) + 1
+        evidence = result.get("evidence", "N/A")
+        gaps = result.get("gaps", "N/A")
+        recommendation = result.get("recommendation", "N/A")
+        results_summary_parts.append(
+            f"Principle ({p.id}): {p.title}\n"
+            f"  Description: {p.description}\n"
+            f"  Rating: {level}\n"
+            f"  Evidence: {evidence}\n"
+            f"  Gaps: {gaps}\n"
+            f"  Recommendation: {recommendation}"
+        )
+
+    executive_summary = (
+        f"Executive summary:\n"
+        f"- Meets: {counts['meets']} / {len(principles_evaluated)}\n"
+        f"- Partially meets: {counts['partially_meets']} / {len(principles_evaluated)}\n"
+        f"- Does not meet: {counts['does_not_meet']} / {len(principles_evaluated)}\n"
+        f"- Insufficient info: {counts['insufficient_info']} / {len(principles_evaluated)}\n"
+    )
+
+    results_block = "\n\n".join(results_summary_parts)
+
+    system = (
+        "You are a warm, knowledgeable educational assessment consultant writing narrative feedback for a university instructor.\n"
+        "Your tone is encouraging, collegial, and constructive. You write in second person (\"you\", \"your assessment\").\n"
+        "You never use bullet points or numbered lists. Write in flowing, well-structured paragraphs.\n"
+        "You ground every observation in the specific assessment and course context provided.\n\n"
+        "You will produce exactly two sections of feedback in JSON format:\n"
+        '1. "alignment" — Celebrate what the assessment does well. Explain which assessment principles are met and WHY, '
+        "referencing specific elements of the assessment. The tone should be affirming and encouraging, explicitly naming strengths. "
+        "Only discuss principles that are rated 'meets'. If none meet, acknowledge the potential you see and the foundations already present.\n\n"
+        '2. "continue_the_journey" — Offer constructive recommendations to strengthen the assessment. '
+        "Approach from a place of strength — acknowledge what is already working, then suggest how to build on it. "
+        "Focus on principles rated 'partially_meets' or 'does_not_meet'. "
+        "Provide concrete, actionable examples tailored to the discipline, course level, and assessment type. "
+        "Be helpful and specific — give the instructor ideas they can implement. "
+        "If a principle has 'insufficient_info', do NOT treat it as a gap; skip it.\n\n"
+        "Return JSON only (no markdown fences):\n"
+        '{"alignment": "...", "continue_the_journey": "..."}\n'
+        "Each section should be 150-300 words of flowing narrative paragraphs."
+    )
+
+    user = (
+        f"{course_context}\n"
+        f"Assessment description:\n{description}\n\n"
+        f"{executive_summary}\n"
+        f"Principle-by-principle evaluation results:\n{results_block}\n"
+    )
+
+    obj = oai.responses_json(system=system, user=user, max_output_tokens=2000)
+    alignment = (obj.get("alignment") or "").strip()
+    continue_journey = (obj.get("continue_the_journey") or "").strip()
+    return alignment, continue_journey
+
+
 def evaluate_run(run_id: str) -> None:
     """
     Background task:
@@ -257,10 +341,26 @@ def evaluate_run(run_id: str) -> None:
                     session.add(pr)
                     session.commit()
 
-        # Mark complete
+        # Generate narrative feedback from the collected principle results
+        with get_session() as session:
+            pr_rows = session.exec(
+                select(PrincipleResult).where(PrincipleResult.run_id == run_id)
+            ).all()
+            collected_results = [json.loads(r.json_output) for r in pr_rows]
+
+        alignment, continue_journey = _generate_narrative_feedback(
+            course_context=course_context,
+            description=desc,
+            principle_results=collected_results,
+            principles_evaluated=principles_to_eval,
+        )
+
+        # Mark complete and store narrative
         with get_session() as session:
             run = session.get(Run, run_id)
             if run:
+                run.narrative_alignment = alignment
+                run.narrative_continue_journey = continue_journey
                 run.status = "completed"
                 session.add(run)
                 session.commit()

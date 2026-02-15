@@ -19,6 +19,8 @@ export type Run = {
   model: string;
   status: "created" | "evaluating" | "completed" | "failed";
   error?: string | null;
+  narrative_alignment?: string | null;
+  narrative_continue_journey?: string | null;
 };
 
 export type PrincipleResult = {

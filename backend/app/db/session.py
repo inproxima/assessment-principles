@@ -49,6 +49,7 @@ def init_db() -> None:
     _missing_cols = (
         "course_level", "modality", "discipline",
         "assessment_type", "learning_outcome", "selected_principles",
+        "narrative_alignment", "narrative_continue_journey",
     )
     for col in _missing_cols:
         _add_column_if_missing(table="runs", column=col, ddl_type="TEXT")
