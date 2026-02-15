@@ -6,6 +6,7 @@ export function Field({
   required = false,
   requiredTone = "muted",
   helperText,
+  labelSuffix,
   children
 }: {
   label: string;
@@ -13,6 +14,7 @@ export function Field({
   required?: boolean;
   requiredTone?: "muted" | "amber";
   helperText?: string;
+  labelSuffix?: ReactNode;
   children: ReactNode;
 }) {
   const requiredClass = requiredTone === "amber" ? "text-amber-700" : "text-slate-400";
@@ -21,6 +23,7 @@ export function Field({
       <label htmlFor={htmlFor} className="text-xs font-medium text-slate-700">
         {label}
         {required && <span className={`ml-1 text-xs ${requiredClass}`}>(required)</span>}
+        {labelSuffix}
       </label>
       {children}
       {helperText ? <p className="mt-1 text-xs text-slate-500">{helperText}</p> : null}

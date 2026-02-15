@@ -10,7 +10,7 @@ export type Run = {
   input_type: "task" | "description";
   source: "text" | "upload";
   course_level?: "undergraduate" | "graduate" | null;
-  modality?: "online" | "in_person" | "hybrid" | null;
+  modality?: "in_person" | "blended_learning" | "web_based" | "field_school" | "practicum" | "field_placement" | "service_learning" | "internship" | "co_op" | "distance_education" | null;
   discipline?: string | null;
   assessment_type?: "formative" | "summative" | null;
   learning_outcome?: string | null;
@@ -59,7 +59,7 @@ export async function getPrinciples(): Promise<Principle[]> {
 export async function createRun(params: {
   mode: "task" | "description";
   course_level: "undergraduate" | "graduate";
-  modality: "online" | "in_person" | "hybrid";
+  modality: "in_person" | "blended_learning" | "web_based" | "field_school" | "practicum" | "field_placement" | "service_learning" | "internship" | "co_op" | "distance_education";
   discipline: string;
   assessment_type: "formative" | "summative";
   learning_outcome: string;

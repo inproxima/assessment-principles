@@ -15,7 +15,17 @@ import { StatusBar } from "./components/ui/StatusBar";
 
 type Mode = "task" | "description";
 type CourseLevel = "undergraduate" | "graduate";
-type Modality = "online" | "in_person" | "hybrid";
+type Modality =
+  | "in_person"
+  | "blended_learning"
+  | "web_based"
+  | "field_school"
+  | "practicum"
+  | "field_placement"
+  | "service_learning"
+  | "internship"
+  | "co_op"
+  | "distance_education";
 type AssessmentType = "formative" | "summative";
 
 export default function Page() {
@@ -147,10 +157,10 @@ export default function Page() {
         <div className="flex items-start justify-between gap-6">
           <div>
             <h1 className="text-pretty text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              Assessment Principles Evaluator
+              Assessment Principles Application
             </h1>
             <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-slate-600">
-              Paste an assessment task/description (and/or upload a PDF/DOCX). Select the principles you want to evaluate against, then generate a report.
+              Paste an assessment task/description (and/or upload a PDF/DOCX). Select the principles you would like the machine to use for the review and response.
             </p>
           </div>
         </div>
@@ -174,14 +184,33 @@ export default function Page() {
 
             <SelectField
               label="Modality"
+              labelSuffix={
+                <a
+                  href="https://www.ucalgary.ca/student-services/calendar-scheduling/scheduling/scheduling-guidelines/definitions-instruction-modes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="View modality definitions"
+                  className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px] font-semibold leading-none text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  ?
+                </a>
+              }
               value={modality}
               onChange={(e) => setModality(e.target.value as Modality | "")}
               disabled={busy}
             >
               <option value="">Select…</option>
-              <option value="online">Online</option>
-              <option value="in_person">In-person</option>
-              <option value="hybrid">Hybrid</option>
+              <option value="in_person">In Person</option>
+              <option value="blended_learning">Blended Learning</option>
+              <option value="web_based">Web-based Instruction</option>
+              <option value="field_school">Field School</option>
+              <option value="practicum">Practicum</option>
+              <option value="field_placement">Field Placement</option>
+              <option value="service_learning">Service Learning</option>
+              <option value="internship">Internship</option>
+              <option value="co_op">Co-op</option>
+              <option value="distance_education">Distance Education</option>
             </SelectField>
           </div>
 

@@ -46,14 +46,25 @@ async def create_run(
     if course_level not in ("undergraduate", "graduate"):
         raise HTTPException(status_code=400, detail="course_level must be 'undergraduate' or 'graduate'")
 
+    VALID_MODALITIES = (
+        "in_person",
+        "blended_learning",
+        "web_based",
+        "field_school",
+        "practicum",
+        "field_placement",
+        "service_learning",
+        "internship",
+        "co_op",
+        "distance_education",
+    )
     modality_norm = (modality or "").strip().lower()
     modality_norm = modality_norm.replace("-", "_").replace(" ", "_")
-    if modality_norm == "inperson":
-        modality_norm = "in_person"
-    if modality_norm == "hybird":  # common typo
-        modality_norm = "hybrid"
-    if modality_norm not in ("online", "in_person", "hybrid"):
-        raise HTTPException(status_code=400, detail="modality must be 'online', 'in_person', or 'hybrid'")
+    if modality_norm not in VALID_MODALITIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"modality must be one of: {', '.join(VALID_MODALITIES)}",
+        )
 
     discipline = (discipline or "").strip()
     if not discipline:

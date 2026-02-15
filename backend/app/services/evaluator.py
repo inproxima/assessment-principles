@@ -50,6 +50,69 @@ def _get_openai() -> OpenAIClient:
     )
 
 
+MODALITY_DEFINITIONS: dict[str, str] = {
+    "in_person": (
+        "All instructional content for a course will be delivered in an in-person format. "
+        "These courses are expected to have all GFC hours scheduled and assigned to space. "
+        "This includes all assessments and supervised academic activity. "
+        "Instructional methods may include traditional, problem-based learning, active learning, "
+        "collaborative learning and flipped classroom approaches."
+    ),
+    "blended_learning": (
+        "Blended learning methods include both in-class and web-based components of instruction. "
+        "GFC hours should be met by using a combination of in person and online instruction. "
+        "A component of a course may be taught a scheduled number of hours per week in-person "
+        "and then the remaining hours online using instructor lead discussion, online work "
+        "and/or other methods of online facilitated instruction. Independent readings and projects, "
+        "or courses taught partially in-person with a final project, are not considered a "
+        "\"Blended\" modality for our purposes."
+    ),
+    "web_based": (
+        "To be used for courses taught entirely online with no in-person component including "
+        "assessments. Web-Based Courses may be taught synchronously, asynchronously or hybrid "
+        "as indicated in the class notes and scheduling details."
+    ),
+    "field_school": (
+        "Provides students with an intensive part-time/short-term hands-on practical experience "
+        "in a setting relevant to their subject of study. This may apply to any portion of a "
+        "course where the majority of coursework is done off-site and in the field."
+    ),
+    "practicum": (
+        "This is to be used for all Practicum type courses or faculty provided internships not "
+        "labeled INTE. This mode indicates that students are off-site and participating in "
+        "experiential learning activities in a regular work environment. These courses are "
+        "typically required for licensure in a profession and may also be called preceptorships, "
+        "internships, practicum, or field experience."
+    ),
+    "field_placement": (
+        "These courses do not meet the definition of field school or practicum and may be "
+        "opportunities to provide students with hands-on work-related experience while on main "
+        "campus or in a community setting. Courses that are practicum in nature but not required "
+        "for licensure may be considered FPL."
+    ),
+    "service_learning": (
+        "Courses that integrate meaningful community service with classroom instruction and "
+        "critical reflection to enrich the learning experience and strengthen communities. "
+        "In practice, students work in partnership with a community-based organization to apply "
+        "their disciplinary knowledge to a challenge identified by the community."
+    ),
+    "internship": (
+        "Applies to courses labelled INTE in the Academic Calendar with approved fee structure. "
+        "Courses considered internships within the Faculty but not labelled INTE are not approved "
+        "to be given the instruction mode of IT and should be labelled PR, FPL, or SEL."
+    ),
+    "co_op": (
+        "This applies to courses labelled \"COOP\" in the Academic Calendar only."
+    ),
+    "distance_education": (
+        "Courses that are part of the graduate distance education programs offered by Cumming "
+        "School of Medicine and Werklund School of Education only. This modality ensures that "
+        "students are charged approved distance education fees, otherwise the course should be "
+        "labelled \"WW\" (web-based)."
+    ),
+}
+
+
 def _course_context_for_run(run: Run) -> str:
     """
     Returns a stable, human-readable course context block that must be included
@@ -60,10 +123,14 @@ def _course_context_for_run(run: Run) -> str:
     discipline = (run.discipline or "").strip() or "unknown"
     assessment_type = (run.assessment_type or "").strip() or "unknown"
     lo = (run.learning_outcome or "").strip() or "unknown"
+    modality_def = MODALITY_DEFINITIONS.get(modality, "")
+    modality_line = f"- Modality: {modality}\n"
+    if modality_def:
+        modality_line += f"  Definition: {modality_def}\n"
     return (
         "Course context:\n"
         f"- Course level: {level}\n"
-        f"- Modality: {modality}\n"
+        f"{modality_line}"
         f"- Discipline: {discipline}\n"
         f"- Assessment type: {assessment_type}\n"
         f"- Learning outcome: {lo}\n"

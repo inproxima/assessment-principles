@@ -7,6 +7,7 @@ export function SelectField({
   helperText,
   required,
   requiredTone,
+  labelSuffix,
   className = "",
   children,
   ...props
@@ -15,12 +16,13 @@ export function SelectField({
   helperText?: string;
   required?: boolean;
   requiredTone?: "muted" | "amber";
+  labelSuffix?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 } & SelectHTMLAttributes<HTMLSelectElement>) {
   const id = useId();
   return (
-    <Field label={label} htmlFor={id} helperText={helperText} required={required} requiredTone={requiredTone}>
+    <Field label={label} htmlFor={id} helperText={helperText} required={required} requiredTone={requiredTone} labelSuffix={labelSuffix}>
       <div className="relative">
         <select
           {...props}

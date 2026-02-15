@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def create_app() -> FastAPI:
     settings = get_settings()
 
-    app = FastAPI(title="Assessment Principles Evaluator", version="0.1.0")
+    app = FastAPI(title="Assessment Principles Application", version="0.1.0")
 
     app.add_middleware(
         CORSMiddleware,
