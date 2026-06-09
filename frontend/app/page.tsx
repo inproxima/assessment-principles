@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createReport, createRun, getPrinciples, getRun, startEvaluate, type GetRunResponse, type Principle } from "./apiClient";
 import { PrincipleSelector } from "./components/PrincipleSelector";
+import { AboutPanel } from "./components/AboutPanel";
 import { ReportViewer } from "./components/ReportViewer";
 import { Panel } from "./components/ui/Panel";
 import { SectionHeader } from "./components/ui/SectionHeader";
@@ -175,6 +176,11 @@ export default function Page() {
         <span className="diamond" />
       </div>
 
+      {/* ─── About / How it works ─── */}
+      <div className="animate-fade-up stagger-2">
+        <AboutPanel />
+      </div>
+
       {/* ─── Section 1: Course Context ─── */}
       <div className="animate-fade-up stagger-2">
         <Panel>
@@ -240,6 +246,7 @@ export default function Page() {
               />
               <SelectField
                 label="Assessment type"
+                helperText="Choose 'Summative' for a graded assessment, or 'Formative' for an ungraded one."
                 value={assessmentType}
                 onChange={(e) => setAssessmentType(e.target.value as AssessmentType | "")}
                 disabled={busy}
@@ -274,7 +281,7 @@ export default function Page() {
         <Panel>
           <SectionHeader
             title="Assessment Principles"
-            purpose="Select which principles to evaluate against. Expand each principle to read its description."
+            purpose="Select which principles to evaluate against. We suggest you focus on 2 or 3 rather than all 11. Expand each principle to read its description. There is no expectation that any single assessment task will meet all of these principles."
           />
           <PrincipleSelector
             principles={principles}
@@ -402,13 +409,54 @@ export default function Page() {
       ) : null}
 
       {/* ─── Footer ─── */}
-      <footer className="animate-fade-in stagger-6 pb-8 text-center">
-        <div className="divider-diamond mb-6" aria-hidden="true">
+      <footer className="animate-fade-in stagger-6 space-y-6 pb-8">
+        <div className="divider-diamond" aria-hidden="true">
           <span className="diamond" />
         </div>
-        <p className="text-xs text-stone-400">
-          Assessment Principles Studio
-        </p>
+
+        <div className="mx-auto max-w-2xl space-y-4 text-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-burgundy-900/50">
+              Background
+            </p>
+            <p className="mt-2 text-[13px] leading-relaxed text-stone-500">
+              In 2025, the University of Calgary endorsed 11 Principles for the Assessment of Student
+              Learning to guide, clarify, and inspire assessment innovation across the institution.
+              These Principles emerged from a two-year development process involving a comprehensive
+              literature review, a nationwide environmental scan, and consultations with over 450
+              university community members.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px]">
+            <a
+              href="https://teaching-learning.ucalgary.ca/resources-educators/assessment-principles"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-burgundy-900 underline decoration-burgundy-900/30 underline-offset-2 hover:decoration-burgundy-900"
+            >
+              About the Assessment Principles
+            </a>
+            <a
+              href="https://taylorinstitute.ucalgary.ca/assessment-student-learning"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-burgundy-900 underline decoration-burgundy-900/30 underline-offset-2 hover:decoration-burgundy-900"
+            >
+              Strategies &amp; resources
+            </a>
+            <a
+              href="https://taylorinstitute.ucalgary.ca/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-burgundy-900 underline decoration-burgundy-900/30 underline-offset-2 hover:decoration-burgundy-900"
+            >
+              Contact the Taylor Institute
+            </a>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-stone-400">Assessment Principles Studio</p>
       </footer>
     </main>
   );
