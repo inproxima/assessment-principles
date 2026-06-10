@@ -157,21 +157,21 @@ export default function Page() {
       {/* ─── Header ─── */}
       <header className="animate-fade-up stagger-1">
         <div className="flex items-start justify-between gap-8">
-          <div>
+          <div className="w-full">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-burgundy-900/60">
               Assessment Principles
             </p>
             <h1 className="mt-2 font-display text-3xl tracking-tight text-stone-900 sm:text-4xl">
               Studio
             </h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-stone-500">
+            <p className="mt-3 text-[15px] leading-relaxed text-stone-500">
               Welcome to the University of Calgary Assessment Principles Studio! This AI-powered online
               tool helps you explore how your assessment tasks align with UCalgary&rsquo;s Assessment
               Principles and generates a personalized feedback report with practical recommendations.
               The output from this tool is intended to offer an opportunity to reflect on your
               assessment design, purpose, and effectiveness.
             </p>
-            <div className="mt-4 max-w-2xl rounded-lg border border-amber-200/80 bg-amber-50/50 px-4 py-3 text-[13px] leading-relaxed text-amber-900">
+            <div className="mt-4 rounded-lg border border-amber-200/80 bg-amber-50/50 px-4 py-3 text-[13px] leading-relaxed text-amber-900">
               <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-amber-500 align-middle" />
               This tool <span className="font-semibold">does not</span> store any information. If you
               want to keep a Feedback Report, please download it in PDF or Markdown format using the
