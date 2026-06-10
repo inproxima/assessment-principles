@@ -143,22 +143,7 @@ export function AboutPanel() {
         }`}
       >
         <div className="border-t border-stone-100 px-7 py-6">
-          <p className="text-[15px] leading-relaxed text-stone-600">
-            Welcome to the University of Calgary Assessment Principles Studio! This AI-powered online
-            tool helps you explore how your assessment tasks align with UCalgary&rsquo;s Assessment
-            Principles and generates a personalized feedback report with practical recommendations. The
-            output from this tool is intended to offer an opportunity to reflect on your assessment
-            design, purpose, and effectiveness.
-          </p>
-
-          <div className="mt-5 rounded-lg border border-amber-200/80 bg-amber-50/50 px-4 py-3 text-[13px] leading-relaxed text-amber-900">
-            <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-amber-500 align-middle" />
-            This tool <span className="font-semibold">does not</span> store any information. If you want
-            to keep a Feedback Report, please download it in PDF or Markdown format using the buttons
-            just above your feedback report.
-          </div>
-
-          <ol className="mt-6 space-y-5">
+          <ol className="space-y-5">
             {STEPS.map((s) => (
               <li key={s.n} className="flex gap-4">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-burgundy-50 font-display text-sm font-semibold text-burgundy-900">
