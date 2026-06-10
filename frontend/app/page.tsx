@@ -165,7 +165,15 @@ export default function Page() {
               Studio
             </h1>
             <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-stone-500">
-              Paste an assessment task or description, select evaluation principles, and generate a narrative feedback report with actionable insights.
+              Welcome to the University of Calgary Assessment Principles Studio! This AI-powered online
+              tool helps you explore how your assessment tasks align with UCalgary&rsquo;s Assessment
+              Principles and generates a personalized feedback report with practical recommendations.
+              The output from this tool is intended to offer an opportunity to reflect on your
+              assessment design, purpose, and effectiveness.
+            </p>
+            <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-stone-500">
+              This tool does not store any information. If you want to keep a Feedback Report, please
+              download it in PDF or Markdown format using the buttons just above your feedback report.
             </p>
           </div>
         </div>
